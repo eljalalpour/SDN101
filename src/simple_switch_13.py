@@ -82,7 +82,7 @@ class SimpleSwitch13(app_manager.RyuApp):
 
         dst = eth.dst
         src = eth.src
-t
+
         # We use datapath id in order to distinguish between switches.
         dpid = datapath.id
         self.mac_to_port.setdefault(dpid, {})
