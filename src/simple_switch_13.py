@@ -4,9 +4,9 @@
 #
 # [] Creation Date : 20-05-2015
 #
-# [] Created By : Parham Alvani (parham.alvani@gmail.com)
+# [] Created By : Elahe Jalalpour (elahejalalpoor@gmail.com)
 # =======================================
-__author__ = 'Parham Alvani'
+__author__ = 'Elahe Jalalpour'
 
 from ryu.base import app_manager
 from ryu.controller import ofp_event
