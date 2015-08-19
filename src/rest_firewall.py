@@ -18,7 +18,6 @@ import logging
 import json
 
 from webob import Response
-
 from ryu.app.wsgi import ControllerBase
 from ryu.app.wsgi import WSGIApplication
 from ryu.base import app_manager
@@ -37,109 +36,8 @@ from ryu.ofproto import ether
 from ryu.ofproto import inet
 from ryu.ofproto import ofproto_v1_0
 from ryu.ofproto import ofproto_v1_2
-from ryu.ofproto import ofproto_v1_2_parser
 from ryu.ofproto import ofproto_v1_3
 from ryu.ofproto import ofproto_v1_3_parser
-
-
-# =============================
-#          REST API
-# =============================
-#
-#  Note: specify switch and vlan group, as follows.
-#   {switch-id} : 'all' or switchID
-#   {vlan-id}   : 'all' or vlanID
-#
-#
-
-# about Firewall status
-#
-# get status of all firewall switches
-# GET /firewall/module/status
-#
-# set enable the firewall switches
-# PUT /firewall/module/enable/{switch-id}
-#
-# set disable the firewall switches
-# PUT /firewall/module/disable/{switch-id}
-#
-
-# about Firewall logs
-#
-# get log status of all firewall switches
-# GET /firewall/log/status
-#
-# set log enable the firewall switches
-# PUT /firewall/log/enable/{switch-id}
-#
-# set log disable the firewall switches
-# PUT /firewall/log/disable/{switch-id}
-#
-
-# about Firewall rules
-#
-# get rules of the firewall switches
-# * for no vlan
-# GET /firewall/rules/{switch-id}
-#
-# * for specific vlan group
-# GET /firewall/rules/{switch-id}/{vlan-id}
-#
-#
-# set a rule to the firewall switches
-# * for no vlan
-# POST /firewall/rules/{switch-id}
-#
-# * for specific vlan group
-# POST /firewall/rules/{switch-id}/{vlan-id}
-#
-#  request body format:
-#   {"<field1>":"<value1>", "<field2>":"<value2>",...}
-#
-#     <field>  : <value>
-#    "priority": "0 to 65533"
-#    "in_port" : "<int>"
-#    "dl_src"  : "<xx:xx:xx:xx:xx:xx>"
-#    "dl_dst"  : "<xx:xx:xx:xx:xx:xx>"
-#    "dl_type" : "<ARP or IPv4 or IPv6>"
-#    "nw_src"  : "<A.B.C.D/M>"
-#    "nw_dst"  : "<A.B.C.D/M>"
-#    "ipv6_src": "<xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx/M>"
-#    "ipv6_dst": "<xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx/M>"
-#    "nw_proto": "<TCP or UDP or ICMP or ICMPv6>"
-#    "tp_src"  : "<int>"
-#    "tp_dst"  : "<int>"
-#    "actions" : "<ALLOW or DENY>"
-#
-#   Note: specifying nw_src/nw_dst
-#         without specifying dl-type as "ARP" or "IPv4"
-#         will automatically set dl-type as "IPv4".
-#
-#   Note: specifying ipv6_src/ipv6_dst
-#         without specifying dl-type as "IPv6"
-#         will automatically set dl-type as "IPv6".
-#
-#   Note: When "priority" has not been set up,
-#         "0" is set to "priority".
-#
-#   Note: When "actions" has not been set up,
-#         "ALLOW" is set to "actions".
-#
-#
-# delete a rule of the firewall switches from ruleID
-# * for no vlan
-# DELETE /firewall/rules/{switch-id}
-#
-# * for specific vlan group
-# DELETE /firewall/rules/{switch-id}/{vlan-id}
-#
-#  request body format:
-#   {"<field>":"<value>"}
-#
-#     <field>  : <value>
-#    "rule_id" : "<int>" or "all"
-#
-
 
 SWITCHID_PATTERN = dpid_lib.DPID_PATTERN + r'|all'
 VLANID_PATTERN = r'[0-9]{1,4}|all'
@@ -211,7 +109,7 @@ class RestFirewallAPI(app_manager.RyuApp):
         self.dpset = kwargs['dpset']
         wsgi = kwargs['wsgi']
         self.waiters = {}
-        self.data = {}
+        self.data = dict()
         self.data['dpset'] = self.dpset
         self.data['waiters'] = self.waiters
 
@@ -257,7 +155,7 @@ class RestFirewallAPI(app_manager.RyuApp):
                        conditions=dict(method=['PUT']),
                        requirements=requirements)
 
-        # for no VLAN data
+        # for firewall rules with no VLAN data
         uri = path + '/rules/{switchid}'
         mapper.connect('firewall', uri,
                        controller=FirewallController, action='get_rules',
@@ -274,7 +172,7 @@ class RestFirewallAPI(app_manager.RyuApp):
                        conditions=dict(method=['DELETE']),
                        requirements=requirements)
 
-        # for VLAN data
+        # for firewall rules with VLAN data
         uri += '/{vlanid}'
         mapper.connect('firewall', uri, controller=FirewallController,
                        action='get_vlan_rules',
@@ -303,8 +201,7 @@ class RestFirewallAPI(app_manager.RyuApp):
         msgs.append(msg)
 
         flags = 0
-        if dp.ofproto.OFP_VERSION == ofproto_v1_0.OFP_VERSION or \
-                        dp.ofproto.OFP_VERSION == ofproto_v1_2.OFP_VERSION:
+        if dp.ofproto.OFP_VERSION == ofproto_v1_0.OFP_VERSION or dp.ofproto.OFP_VERSION == ofproto_v1_2.OFP_VERSION:
             flags = dp.ofproto.OFPSF_REPLY_MORE
         elif dp.ofproto.OFP_VERSION == ofproto_v1_3.OFP_VERSION:
             flags = dp.ofproto.OFPMPF_REPLY_MORE
@@ -317,9 +214,9 @@ class RestFirewallAPI(app_manager.RyuApp):
     @set_ev_cls(dpset.EventDP, dpset.DPSET_EV_DISPATCHER)
     def handler_datapath(self, ev):
         if ev.enter:
-            FirewallController.regist_ofs(ev.dp)
+            FirewallController.register_ofs(ev.dp)
         else:
-            FirewallController.unregist_ofs(ev.dp)
+            FirewallController.un_register_ofs(ev.dp)
 
     # for OpenFlow version1.0
     @set_ev_cls(ofp_event.EventOFPFlowStatsReply, MAIN_DISPATCHER)
@@ -374,13 +271,13 @@ class FirewallController(ControllerBase):
     def set_logger(cls, logger):
         cls._LOGGER = logger
         cls._LOGGER.propagate = False
-        hdlr = logging.StreamHandler()
+        handler = logging.StreamHandler()
         fmt_str = '[FW][%(levelname)s] %(message)s'
-        hdlr.setFormatter(logging.Formatter(fmt_str))
-        cls._LOGGER.addHandler(hdlr)
+        handler.setFormatter(logging.Formatter(fmt_str))
+        cls._LOGGER.addHandler(handler)
 
     @staticmethod
-    def regist_ofs(dp):
+    def register_ofs(dp):
         dpid_str = dpid_lib.dpid_to_str(dp.id)
         try:
             f_ofs = Firewall(dp)
@@ -398,7 +295,7 @@ class FirewallController(ControllerBase):
                                         dpid_str)
 
     @staticmethod
-    def unregist_ofs(dp):
+    def un_register_ofs(dp):
         if dp.id in FirewallController._OFS_LIST:
             del FirewallController._OFS_LIST[dp.id]
             FirewallController._LOGGER.info('dpid=%s: Leave firewall.',
