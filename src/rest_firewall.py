@@ -1,6 +1,6 @@
 # In The Name Of God
 # ========================================
-# [] File Name : rest_firewall_client.py
+# [] File Name : rest_firewall.py
 #
 # [] Creation Date : 19-08-2015
 #
