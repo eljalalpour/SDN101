@@ -183,6 +183,20 @@ class RestFirewallAPI(app_manager.RyuApp):
                        conditions=dict(method=['DELETE']),
                        requirements=requirements)
 
+    @set_ev_cls(dpset.EventDP, dpset.DPSET_EV_DISPATCHER)
+    def handler_datapath(self, ev):
+        """
+        dpset.EventDP: An event class to notify connect/disconnect of a switch.
+        :param ev: has following attribute
+        dp: A ryu.controller.controller.Datapath instance of the switch.
+        enter: True when the switch connected to our controller. False for disconnect.
+        :return:
+        """
+        if ev.enter:
+            FirewallController.register_ofs(ev.dp)
+        else:
+            FirewallController.un_register_ofs(ev.dp)
+
     def stats_reply_handler(self, ev):
         msg = ev.msg
         dp = msg.datapath
@@ -205,21 +219,24 @@ class RestFirewallAPI(app_manager.RyuApp):
         del self.waiters[dp.id][msg.xid]
         lock.set()
 
-    @set_ev_cls(dpset.EventDP, dpset.DPSET_EV_DISPATCHER)
-    def handler_datapath(self, ev):
-        if ev.enter:
-            FirewallController.register_ofs(ev.dp)
-        else:
-            FirewallController.un_register_ofs(ev.dp)
-
     # for OpenFlow version1.0
     @set_ev_cls(ofp_event.EventOFPFlowStatsReply, MAIN_DISPATCHER)
     def stats_reply_handler_v1_0(self, ev):
+        """
+        Individual flow statistics reply message
+        :param ev:
+        :return:
+        """
         self.stats_reply_handler(ev)
 
     # for OpenFlow version1.2 or later
     @set_ev_cls(ofp_event.EventOFPStatsReply, MAIN_DISPATCHER)
     def stats_reply_handler_v1_2(self, ev):
+        """
+        Individual flow statistics reply message
+        :param ev:
+        :return:
+        """
         self.stats_reply_handler(ev)
 
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
@@ -628,10 +645,8 @@ class Firewall(object):
     def _set_rule(self, cookie, rest, waiters, vlan_id):
         priority = int(rest.get(REST_PRIORITY, ACL_FLOW_PRIORITY_MIN))
 
-        if (priority < ACL_FLOW_PRIORITY_MIN
-            or ACL_FLOW_PRIORITY_MAX < priority):
-            raise ValueError('Invalid priority value. Set [%d-%d]'
-                             % (ACL_FLOW_PRIORITY_MIN, ACL_FLOW_PRIORITY_MAX))
+        if priority < ACL_FLOW_PRIORITY_MIN or ACL_FLOW_PRIORITY_MAX < priority:
+            raise ValueError('Invalid priority value. Set [%d-%d]' % (ACL_FLOW_PRIORITY_MIN, ACL_FLOW_PRIORITY_MAX))
 
         if vlan_id:
             rest[REST_DL_VLAN] = vlan_id
@@ -773,15 +788,14 @@ class Firewall(object):
 
 
 class Match(object):
-    _CONVERT = {REST_DL_TYPE:
-                    {REST_DL_TYPE_ARP: ether.ETH_TYPE_ARP,
-                     REST_DL_TYPE_IPV4: ether.ETH_TYPE_IP,
-                     REST_DL_TYPE_IPV6: ether.ETH_TYPE_IPV6},
-                REST_NW_PROTO:
-                    {REST_NW_PROTO_TCP: inet.IPPROTO_TCP,
-                     REST_NW_PROTO_UDP: inet.IPPROTO_UDP,
-                     REST_NW_PROTO_ICMP: inet.IPPROTO_ICMP,
-                     REST_NW_PROTO_ICMPV6: inet.IPPROTO_ICMPV6}}
+    _CONVERT = {REST_DL_TYPE: {REST_DL_TYPE_ARP: ether.ETH_TYPE_ARP,
+                               REST_DL_TYPE_IPV4: ether.ETH_TYPE_IP,
+                               REST_DL_TYPE_IPV6: ether.ETH_TYPE_IPV6},
+                REST_NW_PROTO: {REST_NW_PROTO_TCP: inet.IPPROTO_TCP,
+                                REST_NW_PROTO_UDP: inet.IPPROTO_UDP,
+                                REST_NW_PROTO_ICMP: inet.IPPROTO_ICMP,
+                                REST_NW_PROTO_ICMPV6: inet.IPPROTO_ICMPV6}
+                }
 
     _MATCHES = [REST_IN_PORT,
                 REST_SRC_MAC,
@@ -799,21 +813,21 @@ class Match(object):
     @staticmethod
     def to_openflow(rest):
 
-        def __inv_combi(msg):
+        def __inv_combination(msg):
             raise ValueError('Invalid combination: [%s]' % msg)
 
         def __inv_2and1(*args):
-            __inv_combi('%s=%s and %s' % (args[0], args[1], args[2]))
+            __inv_combination('%s=%s and %s' % (args[0], args[1], args[2]))
 
         def __inv_2and2(*args):
-            __inv_combi('%s=%s and %s=%s' % (
+            __inv_combination('%s=%s and %s=%s' % (
                 args[0], args[1], args[2], args[3]))
 
         def __inv_1and1(*args):
-            __inv_combi('%s and %s' % (args[0], args[1]))
+            __inv_combination('%s and %s' % (args[0], args[1]))
 
         def __inv_1and2(*args):
-            __inv_combi('%s and %s=%s' % (args[0], args[1], args[2]))
+            __inv_combination('%s and %s=%s' % (args[0], args[1], args[2]))
 
         match = {}
 
@@ -823,36 +837,25 @@ class Match(object):
         if dl_type is not None:
             if dl_type == REST_DL_TYPE_ARP:
                 if REST_SRC_IPV6 in rest:
-                    __inv_2and1(
-                        REST_DL_TYPE, REST_DL_TYPE_ARP, REST_SRC_IPV6)
+                    __inv_2and1(REST_DL_TYPE, REST_DL_TYPE_ARP, REST_SRC_IPV6)
                 if REST_DST_IPV6 in rest:
-                    __inv_2and1(
-                        REST_DL_TYPE, REST_DL_TYPE_ARP, REST_DST_IPV6)
+                    __inv_2and1(REST_DL_TYPE, REST_DL_TYPE_ARP, REST_DST_IPV6)
                 if nw_proto:
-                    __inv_2and1(
-                        REST_DL_TYPE, REST_DL_TYPE_ARP, REST_NW_PROTO)
+                    __inv_2and1(REST_DL_TYPE, REST_DL_TYPE_ARP, REST_NW_PROTO)
             elif dl_type == REST_DL_TYPE_IPV4:
                 if REST_SRC_IPV6 in rest:
-                    __inv_2and1(
-                        REST_DL_TYPE, REST_DL_TYPE_IPV4, REST_SRC_IPV6)
+                    __inv_2and1(REST_DL_TYPE, REST_DL_TYPE_IPV4, REST_SRC_IPV6)
                 if REST_DST_IPV6 in rest:
-                    __inv_2and1(
-                        REST_DL_TYPE, REST_DL_TYPE_IPV4, REST_DST_IPV6)
+                    __inv_2and1(REST_DL_TYPE, REST_DL_TYPE_IPV4, REST_DST_IPV6)
                 if nw_proto == REST_NW_PROTO_ICMPV6:
-                    __inv_2and2(
-                        REST_DL_TYPE, REST_DL_TYPE_IPV4,
-                        REST_NW_PROTO, REST_NW_PROTO_ICMPV6)
+                    __inv_2and2(REST_DL_TYPE, REST_DL_TYPE_IPV4, REST_NW_PROTO, REST_NW_PROTO_ICMPV6)
             elif dl_type == REST_DL_TYPE_IPV6:
                 if REST_SRC_IP in rest:
-                    __inv_2and1(
-                        REST_DL_TYPE, REST_DL_TYPE_IPV6, REST_SRC_IP)
+                    __inv_2and1(REST_DL_TYPE, REST_DL_TYPE_IPV6, REST_SRC_IP)
                 if REST_DST_IP in rest:
-                    __inv_2and1(
-                        REST_DL_TYPE, REST_DL_TYPE_IPV6, REST_DST_IP)
+                    __inv_2and1(REST_DL_TYPE, REST_DL_TYPE_IPV6, REST_DST_IP)
                 if nw_proto == REST_NW_PROTO_ICMP:
-                    __inv_2and2(
-                        REST_DL_TYPE, REST_DL_TYPE_IPV6,
-                        REST_NW_PROTO, REST_NW_PROTO_ICMP)
+                    __inv_2and2(REST_DL_TYPE, REST_DL_TYPE_IPV6, REST_NW_PROTO, REST_NW_PROTO_ICMP)
             else:
                 raise ValueError('Unknown dl_type : %s' % dl_type)
         else:
@@ -910,20 +913,20 @@ class Match(object):
     def to_rest(openflow):
         of_match = openflow[REST_MATCH]
 
-        mac_dontcare = mac.haddr_to_str(mac.DONTCARE)
-        ip_dontcare = '0.0.0.0'
-        ipv6_dontcare = '::'
+        mac_do_not_care = mac.haddr_to_str(mac.DONTCARE)
+        ip_do_not_care = '0.0.0.0'
+        ipv6_do_not_care = '::'
 
         match = {}
         for key, value in of_match.items():
             if key == REST_SRC_MAC or key == REST_DST_MAC:
-                if value == mac_dontcare:
+                if value == mac_do_not_care:
                     continue
             elif key == REST_SRC_IP or key == REST_DST_IP:
-                if value == ip_dontcare:
+                if value == ip_do_not_care:
                     continue
             elif key == REST_SRC_IPV6 or key == REST_DST_IPV6:
-                if value == ipv6_dontcare:
+                if value == ipv6_do_not_care:
                     continue
             elif value == 0:
                 continue
@@ -939,24 +942,23 @@ class Match(object):
 
     @staticmethod
     def to_mod_openflow(of_match):
-        mac_dontcare = mac.haddr_to_str(mac.DONTCARE)
-        ip_dontcare = '0.0.0.0'
-        ipv6_dontcare = '::'
+        mac_do_not_care = mac.haddr_to_str(mac.DONTCARE)
+        ip_do_not_care = '0.0.0.0'
+        ipv6_do_not_care = '::'
 
         match = {}
         for key, value in of_match.items():
             if key == REST_SRC_MAC or key == REST_DST_MAC:
-                if value == mac_dontcare:
+                if value == mac_do_not_care:
                     continue
             elif key == REST_SRC_IP or key == REST_DST_IP:
-                if value == ip_dontcare:
+                if value == ip_do_not_care:
                     continue
             elif key == REST_SRC_IPV6 or key == REST_DST_IPV6:
-                if value == ipv6_dontcare:
+                if value == ipv6_do_not_care:
                     continue
             elif value == 0:
                 continue
-
             match.setdefault(key, value)
 
         return match
