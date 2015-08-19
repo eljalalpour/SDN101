@@ -504,8 +504,14 @@ class Firewall(object):
     def _cookie_to_ruleid(cookie):
         return cookie & ofproto_v1_3_parser.UINT32_MAX
 
-    # REST command template
+    @staticmethod
     def rest_command(func):
+        """
+        REST command template
+        :param func:
+        :return:
+        """
+
         def _rest_command(*args, **kwargs):
             key, value = func(*args, **kwargs)
             switch_id = dpid_lib.dpid_to_str(args[0].dp.id)
