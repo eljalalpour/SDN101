@@ -4,9 +4,9 @@
 #
 # [] Creation Date : 19-08-2015
 #
-# [] Created By : Parham Alvani (parham.alvani@gmail.com)
+# [] Created By : Elahe Jalalpour (elahejalalpoor@gmail.com)
 # =======================================
-__author__ = 'Parham Alvani'
+__author__ = 'Elahe Jalalpour'
 
 import logging
 import json
@@ -461,6 +461,21 @@ class FirewallController(ControllerBase):
                                         dpid_str, pkt)
 
 
+def rest_command(func):
+    """
+    REST command template
+    :param func:
+    :return:
+    """
+
+    def _rest_command(*args, **kwargs):
+        key, value = func(*args, **kwargs)
+        switch_id = dpid_lib.dpid_to_str(args[0].dp.id)
+        return {REST_SWITCHID: switch_id, key: value}
+
+    return _rest_command
+
+
 class Firewall(object):
     _OFCTL = {ofproto_v1_0.OFP_VERSION: ofctl_v1_0,
               ofproto_v1_2.OFP_VERSION: ofctl_v1_2,
@@ -503,22 +518,6 @@ class Firewall(object):
     @staticmethod
     def _cookie_to_ruleid(cookie):
         return cookie & ofproto_v1_3_parser.UINT32_MAX
-
-    @staticmethod
-    def rest_command(func):
-        """
-        REST command template
-        :param func:
-        :return:
-        """
-
-        def _rest_command(*args, **kwargs):
-            key, value = func(*args, **kwargs)
-            switch_id = dpid_lib.dpid_to_str(args[0].dp.id)
-            return {REST_SWITCHID: switch_id,
-                    key: value}
-
-        return _rest_command
 
     @rest_command
     def get_status(self, waiters):
