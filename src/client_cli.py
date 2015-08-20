@@ -28,7 +28,7 @@ Firewall CLI Application version 0.9, Copyright (C) 2015 Elahe Jalalpour (elahej
 Renamer comes with ABSOLUTELY NO WARRANTY; for details type `show w'.
 This is free software, and you are welcome to redistribute it
 under certain conditions; type `show c' for details.
-""".format("Welcome", " CLI program for using ryu based firewall application that is written by Elahe Jalalpour ")
+""".format("Welcome", " CLI program for using ryu based firewall application which is written by Elahe Jalalpour ")
 
     def preloop(self):
         prompt = "Firewall CLI []"
@@ -88,24 +88,18 @@ under certain conditions; type `show c' for details.
         pass
 
     def do_set_rule(self, line):
+        rule = {}
         try:
             switchid = int(line)
         except ValueError as e:
             print("*** Invalid number: {}".format(str(e)))
         else:
-            priority = input()
-            in_port = input()
-            dl_src = input()
-            dl_dst = input()
-            dl_type = input()
-            nw_src = input()
-            nw_dst = input()
-            ipv6_src = input()
-            ipv6_dst = input()
-            nw_proto = input()
-            tp_src = input()
-            tp_dst = input()
-            actions = input()
+            for key in ['priority', 'in_port', 'dl_src', 'dl_dst', 'dl_type', 'nw_src', 'nw_dst', 'ipv6_src',
+                        'ipv6_dst', 'nw_proto', 'tp_src', 'tp_dst', 'actions']:
+                value = input(key + ": ")
+                if value != '':
+                    rule[key] = value
+            self.firewall.set_rule(rule, switchid)
 
     def do_set_vlan_rule(self, rule, switchid, vlanid):
         pass

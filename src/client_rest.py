@@ -28,10 +28,14 @@ class RyuClientBase:
         """
         req = urllib.request.Request(method=method, url=self.url_prefix + action)
         if body is not None:
-            req.data = json.dumps(body)
+            req.data = json.dumps(body).encode('ASCII')
             req.add_header('Content-Type', 'application/json')
         try:
             res = urllib.request.urlopen(req)
+        except urllib.request.HTTPError as res:
+            print('code %d reason %s' % (res.code, res.reason))
+            print(res.headers)
+            print(str(res.read(), 'ASCII'))
         except urllib.request.URLError:
             raise
         else:
@@ -52,7 +56,8 @@ class RyuClientBase:
         :rtype: object
         """
         res = self._do_request(method, action, body)
-        return str(res.read(), 'ASCII')
+        if res is not None:
+            return str(res.read(), 'ASCII')
 
 
 class RyuClientFirewall(RyuClientBase):
@@ -101,13 +106,13 @@ class RyuClientFirewall(RyuClientBase):
         return rules
 
     def set_rule(self, rule, switchid):
-        return self._do_request_body('POST', '/rules/{:0>16}'.format(switchid), json.dumps(rule))
+        return self._do_request_body('POST', '/rules/{:0>16}'.format(switchid), rule)
 
     def set_vlan_rule(self, rule, switchid, vlanid):
-        return self._do_request_body('POST', '/rules/{0:0>16}/{1}'.format(switchid, vlanid), json.dumps(rule))
+        return self._do_request_body('POST', '/rules/{0:0>16}/{1}'.format(switchid, vlanid), rule)
 
     def delete_rule(self, rule, switchid):
-        return self._do_request_body('DELETE', '/rules/{:0>16}'.format(switchid), json.dumps(rule))
+        return self._do_request_body('DELETE', '/rules/{:0>16}'.format(switchid), rule)
 
     def delete_vlan_rule(self, rule, switchid, vlanid):
-        return self._do_request_body('DELETE', '/rules/{0:0>16}/{1}'.format(switchid, vlanid), json.dumps(rule))
+        return self._do_request_body('DELETE', '/rules/{0:0>16}/{1}'.format(switchid, vlanid), rule)
