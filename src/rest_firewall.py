@@ -103,9 +103,7 @@ class RestFirewallAPI(app_manager.RyuApp):
         self.dpset = kwargs['dpset']
         wsgi = kwargs['wsgi']
         self.waiters = {}
-        self.data = dict()
-        self.data['dpset'] = self.dpset
-        self.data['waiters'] = self.waiters
+        self.data = {'dpset': self.dpset, 'waiters': self.waiters}
 
         mapper = wsgi.mapper
         wsgi.registory['FirewallController'] = self.data
@@ -293,8 +291,7 @@ class FirewallController(ControllerBase):
         try:
             f_ofs = Firewall(dp)
         except OFPUnknownVersion as message:
-            FirewallController._LOGGER.info('dpid=%s: %s',
-                                            dpid_str, message)
+            FirewallController._LOGGER.info('dpid=%s: %s', dpid_str, message)
             return
 
         FirewallController._OFS_LIST.setdefault(dp.id, f_ofs)
@@ -302,15 +299,13 @@ class FirewallController(ControllerBase):
         f_ofs.set_disable_flow()
         f_ofs.set_arp_flow()
         f_ofs.set_log_enable()
-        FirewallController._LOGGER.info('dpid=%s: Join as firewall.',
-                                        dpid_str)
+        FirewallController._LOGGER.info('dpid=%s: Join as firewall.', dpid_str)
 
     @staticmethod
     def un_register_ofs(dp):
         if dp.id in FirewallController._OFS_LIST:
             del FirewallController._OFS_LIST[dp.id]
-            FirewallController._LOGGER.info('dpid=%s: Leave firewall.',
-                                            dpid_lib.dpid_to_str(dp.id))
+            FirewallController._LOGGER.info('dpid=%s: Leave firewall.', dpid_lib.dpid_to_str(dp.id))
 
     # GET /firewall/module/status
     def get_status(self, req, **_kwargs):
@@ -476,15 +471,14 @@ def rest_command(func):
     return _rest_command
 
 
-class Firewall(object):
+class Firewall:
     _OFCTL = {ofproto_v1_0.OFP_VERSION: ofctl_v1_0,
               ofproto_v1_2.OFP_VERSION: ofctl_v1_2,
               ofproto_v1_3.OFP_VERSION: ofctl_v1_3}
 
     def __init__(self, dp):
         super(Firewall, self).__init__()
-        self.vlan_list = {}
-        self.vlan_list[VLANID_NONE] = 0  # for VLAN=None
+        self.vlan_list = {VLANID_NONE: 0}
         self.dp = dp
         version = dp.ofproto.OFP_VERSION
 

@@ -73,14 +73,21 @@ class RyuClientFirewall(RyuClientBase):
         self._do_request('PUT', '/module/disable/{:0>16}'.format(switchid))
 
     def get_log_status(self):
-        switches = []
+        logs = []
         for obj in json.loads(self._do_request_body('GET', '/log/status')):
-            switch = namedtuple('SwitchLog', obj.keys())(*obj.values())
-            switches.append(switch)
-        return switches
+            log = namedtuple('SwitchLog', obj.keys())(*obj.values())
+            logs.append(log)
+        return logs
 
     def set_log_enable(self, switchid):
         self._do_request('PUT', '/log/enable/{:0>16}'.format(switchid))
 
     def set_log_disable(self, switchid):
         self._do_request('PUT', '/log/disable/{:0>16}'.format(switchid))
+
+    def get_rules(self, switchid):
+        rules = []
+        for obj in json.loads(self._do_request('GET', '/rules/{:0>16}'.format(switchid))):
+            rule = namedtuple('Rule', obj.keys())(*obj.values)
+            rules.append(rule)
+        return rules
