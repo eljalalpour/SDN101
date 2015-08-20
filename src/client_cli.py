@@ -60,7 +60,7 @@ under certain conditions; type `show c' for details.
         except ValueError as e:
             print("*** Invalid number: {}".format(str(e)))
         else:
-            self.firewall.set_enable(switchid)
+            self.firewall.set_disable(switchid)
 
     def do_get_log_status(self):
         pass
@@ -94,18 +94,33 @@ under certain conditions; type `show c' for details.
         except ValueError as e:
             print("*** Invalid number: {}".format(str(e)))
         else:
-            for key in ['priority', 'in_port', 'dl_src', 'dl_dst', 'dl_type', 'nw_src', 'nw_dst', 'ipv6_src',
-                        'ipv6_dst', 'nw_proto', 'tp_src', 'tp_dst', 'actions']:
-                value = input(key + ": ")
+            fields = [('priority', '<0 to 65533>'), ('in_port', '<int>'), ('dl_src', '<xx:xx:xx:xx:xx:xx>'),
+                      ('dl_dst', '<xx:xx:xx:xx:xx:xx>'), ('dl_type', '<ARP or IPv4 or IPv6>'),
+                      ('nw_src', '<A.B.C.D/M>'),
+                      ('nw_dst', '<A.B.C.D/M>'),
+                      ('ipv6_src', '<xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx/M>'),
+                      ('ipv6_dst', '<xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx/M>'),
+                      ('nw_proto', '<TCP or UDP or ICMP or ICMPv6>'),
+                      ('tp_src', '<int>'),
+                      ('tp_dst', '<int>'),
+                      ('actions', '<ALLOW or DENY>')]
+            for key, desc in fields:
+                value = input("{0} ({1}): ".format(key, desc))
                 if value != '':
                     rule[key] = value
-            self.firewall.set_rule(rule, switchid)
+            print(self.firewall.set_rule(rule, switchid))
 
     def do_set_vlan_rule(self, rule, switchid, vlanid):
         pass
 
-    def do_delete_rule(self, rule, switchid):
-        pass
+    def do_delete_rule(self, line):
+        try:
+            switchid = int(line.split(' ')[0])
+            ruleid = int(line.split(' ')[1])
+        except ValueError as e:
+            print("*** Invalid number: {}".format(str(e)))
+        else:
+            print(self.firewall.delete_rule({'rule_id': ruleid}, switchid))
 
     def do_delete_vlan_rule(self, rule, switchid, vlanid):
         pass
