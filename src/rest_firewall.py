@@ -474,10 +474,10 @@ def rest_command(func):
 class Firewall:
     _OFCTL = {ofproto_v1_0.OFP_VERSION: ofctl_v1_0,
               ofproto_v1_2.OFP_VERSION: ofctl_v1_2,
-              ofproto_v1_3.OFP_VERSION: ofctl_v1_3}
+              ofproto_v1_3.OFP_VERSION: ofctl_v1_3
+              }
 
     def __init__(self, dp):
-        super(Firewall, self).__init__()
         self.vlan_list = {VLANID_NONE: 0}
         self.dp = dp
         version = dp.ofproto.OFP_VERSION
@@ -503,8 +503,7 @@ class Firewall:
             self.vlan_list.setdefault(vlan_id, 0)
             self.vlan_list[vlan_id] += 1
             self.vlan_list[vlan_id] &= ofproto_v1_3_parser.UINT32_MAX
-            cookie = (vlan_id << COOKIE_SHIFT_VLANID) + \
-                     self.vlan_list[vlan_id]
+            cookie = (vlan_id << COOKIE_SHIFT_VLANID) + self.vlan_list[vlan_id]
             cookie_list.append([cookie, vlan_id])
 
         return cookie_list
@@ -767,7 +766,8 @@ class Firewall:
 
         return REST_COMMAND_RESULT, msg
 
-    def _to_of_flow(self, cookie, priority, match, actions):
+    @staticmethod
+    def _to_of_flow(cookie, priority, match, actions):
         flow = {'cookie': cookie,
                 'priority': priority,
                 'flags': 0,
@@ -891,8 +891,7 @@ class Match(object):
                     rest[REST_DL_TYPE] = REST_DL_TYPE_IPV4
                 elif nw_proto == REST_NW_PROTO_ICMPV6:
                     rest[REST_DL_TYPE] = REST_DL_TYPE_IPV6
-                elif nw_proto == REST_NW_PROTO_TCP or \
-                                nw_proto == REST_NW_PROTO_UDP:
+                elif nw_proto == REST_NW_PROTO_TCP or nw_proto == REST_NW_PROTO_UDP:
                     raise ValueError('no dl_type was specified')
                 else:
                     raise ValueError('Unknown nw_proto: %s' % nw_proto)
