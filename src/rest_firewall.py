@@ -317,11 +317,11 @@ class FirewallController(ControllerBase):
         return self._access_module(REST_ALL, 'get_status',
                                    waiters=self.waiters)
 
-    # POST /firewall/module/enable/{switchid}
+    # PUT /firewall/module/enable/{switchid}
     def set_enable(self, req, switchid, **_kwargs):
         return self._access_module(switchid, 'set_enable_flow')
 
-    # POST /firewall/module/disable/{switchid}
+    # PUT /firewall/module/disable/{switchid}
     def set_disable(self, req, switchid, **_kwargs):
         return self._access_module(switchid, 'set_disable_flow')
 
