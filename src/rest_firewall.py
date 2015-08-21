@@ -12,8 +12,7 @@ import logging
 import json
 
 from webob import Response
-from ryu.app.wsgi import ControllerBase
-from ryu.app.wsgi import WSGIApplication
+from ryu.app.wsgi import ControllerBase, WSGIApplication, route
 from ryu.base import app_manager
 from ryu.controller import ofp_event
 from ryu.controller import dpset
@@ -85,6 +84,8 @@ VLANID_MIN = 2
 VLANID_MAX = 4094
 COOKIE_SHIFT_VLANID = 32
 
+PATH = '/firewall'
+
 
 class RestFirewallAPI(app_manager.RyuApp):
     OFP_VERSIONS = [ofproto_v1_0.OFP_VERSION,
@@ -104,82 +105,7 @@ class RestFirewallAPI(app_manager.RyuApp):
         wsgi = kwargs['wsgi']
         self.waiters = {}
         self.data = {'dpset': self.dpset, 'waiters': self.waiters}
-
-        mapper = wsgi.mapper
-        wsgi.registory['FirewallController'] = self.data
-        path = '/firewall'
-        requirements = {'switchid': SWITCHID_PATTERN,
-                        'vlanid': VLANID_PATTERN}
-
-        # for firewall status
-        uri = path + '/module/status'
-        mapper.connect('firewall', uri,
-                       controller=FirewallController, action='get_status',
-                       conditions=dict(method=['GET']))
-
-        uri = path + '/module/enable/{switchid}'
-        mapper.connect('firewall', uri,
-                       controller=FirewallController, action='set_enable',
-                       conditions=dict(method=['PUT']),
-                       requirements=requirements)
-
-        uri = path + '/module/disable/{switchid}'
-        mapper.connect('firewall', uri,
-                       controller=FirewallController, action='set_disable',
-                       conditions=dict(method=['PUT']),
-                       requirements=requirements)
-
-        # for firewall logs
-        uri = path + '/log/status'
-        mapper.connect('firewall', uri,
-                       controller=FirewallController, action='get_log_status',
-                       conditions=dict(method=['GET']))
-
-        uri = path + '/log/enable/{switchid}'
-        mapper.connect('firewall', uri,
-                       controller=FirewallController, action='set_log_enable',
-                       conditions=dict(method=['PUT']),
-                       requirements=requirements)
-
-        uri = path + '/log/disable/{switchid}'
-        mapper.connect('firewall', uri,
-                       controller=FirewallController, action='set_log_disable',
-                       conditions=dict(method=['PUT']),
-                       requirements=requirements)
-
-        # for firewall rules with no VLAN data
-        uri = path + '/rules/{switchid}'
-        mapper.connect('firewall', uri,
-                       controller=FirewallController, action='get_rules',
-                       conditions=dict(method=['GET']),
-                       requirements=requirements)
-
-        mapper.connect('firewall', uri,
-                       controller=FirewallController, action='set_rule',
-                       conditions=dict(method=['POST']),
-                       requirements=requirements)
-
-        mapper.connect('firewall', uri,
-                       controller=FirewallController, action='delete_rule',
-                       conditions=dict(method=['DELETE']),
-                       requirements=requirements)
-
-        # for firewall rules with VLAN data
-        uri += '/{vlanid}'
-        mapper.connect('firewall', uri, controller=FirewallController,
-                       action='get_vlan_rules',
-                       conditions=dict(method=['GET']),
-                       requirements=requirements)
-
-        mapper.connect('firewall', uri, controller=FirewallController,
-                       action='set_vlan_rule',
-                       conditions=dict(method=['POST']),
-                       requirements=requirements)
-
-        mapper.connect('firewall', uri, controller=FirewallController,
-                       action='delete_vlan_rule',
-                       conditions=dict(method=['DELETE']),
-                       requirements=requirements)
+        wsgi.register(FirewallController, self.data)
 
     @set_ev_cls(dpset.EventDP, dpset.DPSET_EV_DISPATCHER)
     def handler_datapath(self, ev):
@@ -308,30 +234,38 @@ class FirewallController(ControllerBase):
             FirewallController._LOGGER.info('dpid=%s: Leave firewall.', dpid_lib.dpid_to_str(dp.id))
 
     # GET /firewall/module/status
-    def get_status(self, req, **_kwargs):
+    @route('firewall', PATH + '/module/status', methods=['GET'])
+    def get_status(self, req, **kwargs):
         return self._access_module(REST_ALL, 'get_status',
                                    waiters=self.waiters)
 
     # PUT /firewall/module/enable/{switchid}
-    def set_enable(self, req, switchid, **_kwargs):
+    @route('firewall', PATH + '/module/enable/{switchid}', methods=['PUT'], requirements={'switchid': SWITCHID_PATTERN})
+    def set_enable(self, req, switchid, **kwargs):
         return self._access_module(switchid, 'set_enable_flow')
 
     # PUT /firewall/module/disable/{switchid}
-    def set_disable(self, req, switchid, **_kwargs):
+    @route('firewall', PATH + '/module/disable/{switchid}', methods=['PUT'],
+           requirements={'switchid': SWITCHID_PATTERN})
+    def set_disable(self, req, switchid, **kwargs):
         return self._access_module(switchid, 'set_disable_flow')
 
     # GET /firewall/log/status
-    def get_log_status(self, dummy, **_kwargs):
+    @route('firewall', PATH + '/log/status', methods=['GET'])
+    def get_log_status(self, req, **kwargs):
         return self._access_module(REST_ALL, 'get_log_status',
                                    waiters=self.waiters)
 
     # PUT /firewall/log/enable/{switchid}
+    @route('firewall', PATH + '/log/enable/{switchid}', methods=['PUT'], requirements={'switchid': SWITCHID_PATTERN})
     def set_log_enable(self, dummy, switchid, **_kwargs):
         return self._access_module(switchid, 'set_log_enable',
                                    waiters=self.waiters)
 
     # PUT /firewall/log/disable/{switchid}
-    def set_log_disable(self, dummy, switchid, **_kwargs):
+    @route('firewall', PATH + '/log/disable/{switchid}', methods=['PUT'],
+           requirements={'switchid': SWITCHID_PATTERN})
+    def set_log_disable(self, req, switchid, **kwargs):
         return self._access_module(switchid, 'set_log_disable',
                                    waiters=self.waiters)
 
@@ -351,27 +285,36 @@ class FirewallController(ControllerBase):
         return Response(content_type='application/json', body=body)
 
     # GET /firewall/rules/{switchid}
-    def get_rules(self, req, switchid, **_kwargs):
+    @route('firewall', PATH + '/rules/{switchid}', methods=['GET'], requirements={'switchid': SWITCHID_PATTERN})
+    def get_rules(self, req, switchid, **kwargs):
         return self._get_rules(switchid)
 
     # GET /firewall/rules/{switchid}/{vlanid}
-    def get_vlan_rules(self, req, switchid, vlanid, **_kwargs):
+    @route('firewall', PATH + '/rules/{switchid}/{vlanid}', methods=['GET'],
+           requirements={'switchid': SWITCHID_PATTERN, 'vlanid': VLANID_PATTERN})
+    def get_vlan_rules(self, req, switchid, vlanid, **kwargs):
         return self._get_rules(switchid, vlan_id=vlanid)
 
     # POST /firewall/rules/{switchid}
-    def set_rule(self, req, switchid, **_kwargs):
+    @route('firewall', PATH + '/rules/{switchid}', methods=['POST'], requirements={'switchid': SWITCHID_PATTERN})
+    def set_rule(self, req, switchid, **kwargs):
         return self._set_rule(req, switchid)
 
     # POST /firewall/rules/{switchid}/{vlanid}
-    def set_vlan_rule(self, req, switchid, vlanid, **_kwargs):
+    @route('firewall', PATH + '/rules/{switchid}/{vlanid}', methods=['POST'],
+           requirements={'switchid': SWITCHID_PATTERN, 'vlanid': VLANID_PATTERN})
+    def set_vlan_rule(self, req, switchid, vlanid, **kwargs):
         return self._set_rule(req, switchid, vlan_id=vlanid)
 
     # DELETE /firewall/rules/{switchid}
-    def delete_rule(self, req, switchid, **_kwargs):
+    @route('firewall', PATH + '/rules/{switchid}', methods=['DELETE'], requirements={'switchid': SWITCHID_PATTERN})
+    def delete_rule(self, req, switchid, **kwargs):
         return self._delete_rule(req, switchid)
 
     # DELETE /firewall/rules/{switchid}/{vlanid}
-    def delete_vlan_rule(self, req, switchid, vlanid, **_kwargs):
+    @route('firewall', PATH + '/rules/{switchid}/{vlanid}', methods=['DELETE'],
+           requirements={'switchid': SWITCHID_PATTERN, 'vlanid': VLANID_PATTERN})
+    def delete_vlan_rule(self, req, switchid, vlanid, **kwargs):
         return self._delete_rule(req, switchid, vlan_id=vlanid)
 
     def _get_rules(self, switchid, vlan_id=VLANID_NONE):
@@ -681,9 +624,7 @@ class Firewall:
             flow_stats = msgs[str(self.dp.id)]
             for flow_stat in flow_stats:
                 priority = flow_stat[REST_PRIORITY]
-                if (priority != STATUS_FLOW_PRIORITY
-                    and priority != ARP_FLOW_PRIORITY
-                    and priority != LOG_FLOW_PRIORITY):
+                if priority != STATUS_FLOW_PRIORITY and priority != ARP_FLOW_PRIORITY and priority != LOG_FLOW_PRIORITY:
                     vid = flow_stat[REST_MATCH].get(REST_DL_VLAN, VLANID_NONE)
                     if vlan_id == REST_ALL or vlan_id == vid:
                         rule = self._to_rest_rule(flow_stat)
@@ -722,11 +663,8 @@ class Firewall:
                 priority = flow_stat[REST_PRIORITY]
                 dl_vlan = flow_stat[REST_MATCH].get(REST_DL_VLAN, VLANID_NONE)
 
-                if (priority != STATUS_FLOW_PRIORITY
-                    and priority != ARP_FLOW_PRIORITY
-                    and priority != LOG_FLOW_PRIORITY):
-                    if ((rule_id == REST_ALL or rule_id == ruleid) and
-                            (vlan_id == dl_vlan or vlan_id == REST_ALL)):
+                if priority != STATUS_FLOW_PRIORITY and priority != ARP_FLOW_PRIORITY and priority != LOG_FLOW_PRIORITY:
+                    if (rule_id == REST_ALL or rule_id == ruleid) and (vlan_id == dl_vlan or vlan_id == REST_ALL):
                         match = Match.to_mod_openflow(flow_stat[REST_MATCH])
                         delete_list.append([cookie, priority, match])
                     else:
