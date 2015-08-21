@@ -395,8 +395,7 @@ class FirewallController(ControllerBase):
     def packet_in_handler(msg):
         pkt = packet.Packet(msg.data)
         dpid_str = dpid_lib.dpid_to_str(msg.datapath.id)
-        FirewallController._LOGGER.info('dpid=%s: Blocked packet = %s',
-                                        dpid_str, pkt)
+        FirewallController._LOGGER.info('dpid=%s: Blocked packet = %s', dpid_str, pkt)
 
 
 def rest_command(func):
