@@ -9,7 +9,8 @@
 __author__ = 'Elahe Jalalpour'
 
 import cmd
-from client_rest import RyuClientFirewall
+
+from rest.firewall_client_rest import RyuClientFirewall
 
 try:
     import termcolor
