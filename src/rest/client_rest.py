@@ -36,18 +36,12 @@ class RyuClientBase:
             print('code %d reason %s' % (res.code, res.reason))
             print(res.headers)
             print(str(res.read(), 'ASCII'))
-        except urllib.request.URLError:
-            raise
         else:
             if res.status in (http.client.OK,
                               http.client.CREATED,
                               http.client.ACCEPTED,
                               http.client.NO_CONTENT):
                 return res
-            else:
-                raise http.client.HTTPException(
-                    res, 'code %d reason %s' % (res.status, res.reason),
-                    res.getheaders(), res.read())
 
     def _do_request_body(self, method, action, body=None):
         """
