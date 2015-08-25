@@ -4,7 +4,7 @@
 #
 # [] Creation Date : 19-08-2015
 #
-# [] Created By : Elahe Jalalpour (elahejalalpoor@gmail.com)
+# [] Created By : Elahe Jalalpour (el.jalalpour@gmail.com)
 # =======================================
 __author__ = 'Elahe Jalalpour'
 

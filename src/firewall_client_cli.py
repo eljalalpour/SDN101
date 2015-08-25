@@ -1,10 +1,10 @@
 # In The Name Of God
 # ========================================
-# [] File Name : client_cli.py
+# [] File Name : firewall_client_cli.py
 #
 # [] Creation Date : 20-08-2015
 #
-# [] Created By : Elahe Jalalpour (elahejalalpoor@gmail.com)
+# [] Created By : Elahe Jalalpour (el.jalalpour@gmail.com)
 # =======================================
 __author__ = 'Elahe Jalalpour'
 
