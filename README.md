@@ -7,5 +7,5 @@ A Persian "Introduction to SDN" documentation can be found
 . In this document you can find history of SDN, popular platforms,...
 
 ## Project
-In project we implement simple firewall with python on [ryu controller](http://osrg.github.io/ryu/),
+In project we implement simple firewall with python on [ELRyu controller](https://github.com/elahejalalpour/ELRyu),
 for testing it we use [mininet platform](http://mininet.org/). 
