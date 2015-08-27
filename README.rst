@@ -15,6 +15,17 @@ and for testing it we used `mininet platform`_.
 
 I personally prefer python3 so I ported `Ryu Controller`_ on python3 and named it `ELRyu Controller`_
 
+Usage's Sample
+..............
+1. Run firewall application on ryu with following command
+::
+    $ ryu-manager sdn101/app/rest_firewall.py
+
+2. Run mininet with your options with command that like following command
+::
+    $ sudo mn --switch=ovs,protocol=OpenFlow13 --controller=remote,x.x.x.x
+
+
 Documentation
 -------------
 A Persian documentation about SDN and it's history can be found in `Introduction to SDN`_ on my google drive.
