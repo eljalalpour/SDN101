@@ -10,7 +10,7 @@ of implementing new ideas to create the network.
 
 Project
 -------
-In project we implement simple firewall with python on `ELRyu controller`_,
+In project we implemented simple firewall with python on `ELRyu controller`_,
 for testing it we use `mininet platform`_.
 
 Documentation
