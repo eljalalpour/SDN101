@@ -17,13 +17,19 @@ I personally prefer python3 so I ported `Ryu Controller`_ on python3 and named i
 
 Usage's Sample
 ..............
-1. Run firewall application on ryu with following command
+1. Run firewall application on ryu with following command:
 ::
     $ ryu-manager sdn101/app/rest_firewall.py
 
-2. Run mininet with your options with command that like following command
+2. Run mininet with your custom options using command that like following command:
 ::
     $ sudo mn --switch=ovs,protocol=OpenFlow13 --controller=remote,x.x.x.x
+
+3. Run firewall client application with following command:
+::
+    $ python3 sdn101/firewall_client_cli.py
+
+5. enter your server ip address and port
 
 
 Documentation
