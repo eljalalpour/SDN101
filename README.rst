@@ -30,6 +30,7 @@ Usage's Sample
     $ python3 sdn101/firewall_client_cli.py
 
 4. Enter your server ip address and port.
+5. Use Firewall CLI Client in order to manage your firewall and have fun :))
 
 Documentation
 -------------
