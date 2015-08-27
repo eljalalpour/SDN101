@@ -29,8 +29,7 @@ Usage's Sample
 ::
     $ python3 sdn101/firewall_client_cli.py
 
-4. enter your server ip address and port
-
+4. Enter your server ip address and port
 
 Documentation
 -------------
