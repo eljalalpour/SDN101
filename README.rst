@@ -13,7 +13,7 @@ Project
 As a project we implemented simple firewall with python on `ELRyu Controller`_,
 and for testing it we used `mininet platform`_.
 
-I personally prefer python3 so I port `Ryu Controller`_ on python3 and named it `ELRyu Controller`_
+I personally prefer python3 so I ported `Ryu Controller`_ on python3 and named it `ELRyu Controller`_
 
 Documentation
 -------------
