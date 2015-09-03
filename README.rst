@@ -41,10 +41,11 @@ A Persian documentation about SDN and it's history can be found in `Introduction
 
 Contributors
 ------------
-1. [Elahe Jalalpour](http://ceit.aut.ac.ir/~jalalpour)
+1. `Elahe Jalalpour`_
 
 .. _ELRyu Controller: https://github.com/elahejalalpour/ELRyu
 .. _mininet platform: http://mininet.org/
 .. _Introduction to SDN: https://docs.google.com/document/d/1ViS_8O3iC8ExZQHhwPMEqcHDuvHJ4gotTIst0r7YYg0/edit?usp=sharing
 .. _Ryu controller: https://github.com/osrg/ryu
 .. _ITRC: https://www.itrc.ac.ir/
+.. _Elahe Jalalpour: http://ceit.aut.ac.ir/~jalalpour
