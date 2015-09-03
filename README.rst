@@ -3,10 +3,10 @@ SDN 101
 =======
 Introduction
 ------------
-With the advent of SDN, the advancing of the costomizable networks has been accelarated.
-Its focus is mainly on the controlability of the programs.
+With the advent of SDN, the advancing of the customizable networks has been accelerated.
+Its focus is mainly on the control-ability of the programs.
 SDN guarantees to significantly ease the network management and
-it aslo brings this apportunity of applying new ideas into current networks immediately.
+it also brings this opportunity of applying new ideas into current networks immediately.
 
 Project
 -------
@@ -36,7 +36,9 @@ Documentation
 -------------
 A Persian documentation about SDN and it's history can be found in `Introduction to SDN`_ on my google drive.
 
-
+Contributors
+------------
+1. [Elahe Jalalpour](http://ceit.aut.ac.ir/~jalalpour)
 
 .. _ELRyu Controller: https://github.com/elahejalalpour/ELRyu
 .. _mininet platform: http://mininet.org/
