@@ -4,7 +4,7 @@ SDN 101
 Introduction
 ------------
 Customizable network idea has been recently given a significant acceleration in the emergence of SDN.
-it, often focuses on the main new idea programmable network.
+its focus is often on the controlability of the programs and aslo brings this apportunity of allpying new ideas into current networks.
 SDN guarantees to significantly ease network management and network programming capability also uses the possibility
 of implementing new ideas to create the network.
 
