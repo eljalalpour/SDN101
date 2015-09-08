@@ -1,3 +1,5 @@
+class: center, middle
+
 # Introduction to SDN
 ## Elahe Jalalpour (el.jalalpour@gmail.com)
 
