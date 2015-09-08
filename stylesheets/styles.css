@@ -333,8 +333,7 @@ ul {
  */
 nav ul,
 nav ol {
-  list-style: none;
-  list-style-image: none;
+  list-style: none none;
 }
 
 /* =============================================================================
@@ -623,7 +622,7 @@ blockquote {
 }
 
 code {
-  font-family: "Lucida Sans", Monaco, Bitstream Vera Sans Mono, Lucida Console, Terminal;
+  font-family: "Lucida Sans", Monaco, Bitstream Vera Sans Mono, Lucida Console, Terminal, serif;
   color: #efefef;
   font-size: 13px;
   margin: 0 4px;
@@ -783,8 +782,7 @@ dt {
 section {
   max-width: 650px;
   padding: 30px 0px 50px 0px;
-  margin: 20px 0;
-  margin-top: 70px;
+  margin: 70px 0 20px;
 }
 section #title {
   border: 0;
