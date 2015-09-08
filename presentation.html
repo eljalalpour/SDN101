@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Title</title>
+    <title>Introduction to SDN</title>
     <meta charset="utf-8">
     <style>
         @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
@@ -23,28 +23,11 @@
     </style>
 </head>
 <body>
-<textarea id="source" title="main">
-
-class: center, middle
-
-# Title
-
----
-
-# Agenda
-
-1. Introduction
-2. Deep-dive
-3. ...
-
----
-
-# Introduction
-
-</textarea>
 <script src="https://gnab.github.io/remark/downloads/remark-latest.min.js"></script>
 <script>
-    var slide_show = remark.create();
+    var slide_show = remark.create({
+        sourceURL: 'slide_show.md'
+    });
 </script>
 </body>
 </html>
