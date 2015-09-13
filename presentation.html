@@ -90,12 +90,12 @@
             margin: 0;
         }
 
-        li {
+        ul li {
             padding-left: 1em;
             text-indent: -.7em;
         }
 
-        li:before {
+        ul li:before {
             content: "> ";
             color: #BB00FF;
         }
@@ -145,6 +145,25 @@ class: center, middle, inverse
 # SDWall
 - Simple firewall which supports packet filtering based on IP, IPv6, MAC etc. it controls by SDN from REST client, for
 testing purpose we implemented a REST client for it.
+---
+# Usage's Sample
+1. Run firewall application on ryu with following command
+```
+$ ryu-manager sdn101/app/rest_firewall.py
+```
+2. Run mininet with your custom options using command that like following command
+```
+$ sudo mn --switch=ovs,protocol=OpenFlow13 --controller=remote,x.x.x.x
+```
+3. Run firewall client application with following command
+```
+$ python3 sdn101/firewall_client_cli.py
+```
+4. Enter your server ip address and port.
+5. Use Firewall CLI Client in order to manage your firewall and have fun :))
+---
+
+
 </textarea>
 <script src="https://gnab.github.io/remark/downloads/remark-latest.min.js"></script>
 <script>
