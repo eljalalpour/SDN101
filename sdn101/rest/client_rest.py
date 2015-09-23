@@ -25,7 +25,8 @@ class RyuClientBase:
         :type method: str
         :rtype: http.client.Response
         """
-        req = urllib.request.Request(method=method, url=self.url_prefix + action)
+        req = urllib.request.Request(method=method,
+                                     url=self.url_prefix + action)
         if body is not None:
             req.data = json.dumps(body).encode('ASCII')
             req.add_header('Content-Type', 'application/json')
