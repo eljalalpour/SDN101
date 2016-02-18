@@ -4,6 +4,6 @@
 #
 # [] Creation Date : 25-08-2015
 #
-# [] Created By : Parham Alvani (parham.alvani@gmail.com)
+# [] Created By : Elahe Jalalpour (parham.alvani@gmail.com)
 # =======================================
-__author__ = 'Parham Alvani'
+__author__ = 'Elahe Jalalpour'
